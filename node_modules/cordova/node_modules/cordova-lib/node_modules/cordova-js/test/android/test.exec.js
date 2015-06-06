@@ -19,7 +19,7 @@
  *
 */
 
-describe('exec.processMessages', function () {
+describe('android exec.processMessages', function () {
     var cordova = require('cordova'),
         exec = require('cordova/android/exec'),
         nativeApiProvider = require('cordova/android/nativeapiprovider'),
@@ -37,6 +37,10 @@ describe('exec.processMessages', function () {
         // Avoid a log message warning about the lack of _nativeApi.
         exec.setJsToNativeBridgeMode(exec.jsToNativeModes.PROMPT);
         nativeApiProvider.set(nativeApi);
+        var origPrompt = typeof prompt == 'undefined' ? undefined : prompt;
+        prompt = function() { return 1234; };
+        exec.init();
+        prompt = origPrompt;
     });
 
     afterEach(function() {
@@ -59,7 +63,8 @@ describe('exec.processMessages', function () {
         it('should process messages in order even when called recursively', function() {
             var firstCallbackId = null;
             var callCount = 0;
-            nativeApi.exec.andCallFake(function(service, action, callbackId, argsJson) {
+            nativeApi.exec.andCallFake(function(secret, service, action, callbackId, argsJson) {
+                expect(secret).toBe(1234);
                 ++callCount;
                 if (callCount == 1) {
                     firstCallbackId = callbackId;
@@ -95,7 +100,8 @@ describe('exec.processMessages', function () {
             });
         });
         it('should process messages asynchronously', function() {
-            nativeApi.exec.andCallFake(function(service, action, callbackId, argsJson) {
+            nativeApi.exec.andCallFake(function(secret, service, action, callbackId, argsJson) {
+                expect(secret).toBe(1234);
                 return createCallbackMessage(true, false, 1, callbackId, 'stwo');
             });
 
@@ -119,64 +125,100 @@ describe('exec.processMessages', function () {
         afterEach(function() {
             cordova.callbackFromNative = origCallbackFromNative;
         });
+
+        function performExecAndReturn(messages) {
+
+            nativeApi.exec.andCallFake(function(secret, service, action, callbackId, argsJson) {
+                return messages;
+            });
+
+            exec(null, null, 'Service', 'action', []);
+            // note: sometimes we need to wait for multiple callbacks, this returns after one
+            // see 'should handle multiple messages' below
+            waitsFor(function() { return callbackSpy.wasCalled }, 200);
+        }
+
         it('should handle payloads of false', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', 'f');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [false], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [false], true);
+            });
         });
         it('should handle payloads of true', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', 't');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [true], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [true], true);
+            });
         });
         it('should handle payloads of null', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', 'N');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [null], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [null], true);
+            });
         });
         it('should handle payloads of numbers', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', 'n-3.3');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [-3.3], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [-3.3], true);
+            });
         });
         it('should handle payloads of strings', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', 'sHello world');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, ['Hello world'], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, ['Hello world'], true);
+            });
         });
         it('should handle payloads of JSON objects', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', '{"a":1}');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [{a:1}], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [{a:1}], true);
+            });
         });
         it('should handle payloads of JSON arrays', function() {
             var messages = createCallbackMessage(true, true, 1, 'id', '[1]');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [[1]], true);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [[1]], true);
+            });
         });
         it('should handle other callback opts', function() {
             var messages = createCallbackMessage(false, false, 3, 'id', 'sfoo');
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', false, 3, ['foo'], false);
+            performExecAndReturn(messages);
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', false, 3, ['foo'], false);
+            });
         });
         it('should handle multiple messages', function() {
             var message1 = createCallbackMessage(false, false, 3, 'id', 'sfoo');
             var message2 = createCallbackMessage(true, true, 1, 'id', 'f');
             var messages = message1 + message2;
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', false, 3, ['foo'], false);
-            expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [false], true);
+            performExecAndReturn(messages);
+
+            // need to wait for ALL the callbacks before we check our expects
+            waitsFor(function(){
+                return callbackSpy.calls.length > 1;
+            },200);
+
+            runs(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', false, 3, ['foo'], false);
+                expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [false], true);
+            });
         });
         it('should poll for more messages when hitting an *', function() {
             var message1 = createCallbackMessage(false, false, 3, 'id', 'sfoo');
             var message2 = createCallbackMessage(true, true, 1, 'id', 'f');
             nativeApi.retrieveJsMessages.andCallFake(function() {
+                expect(callbackSpy).toHaveBeenCalledWith('id', false, 3, ['foo'], false);
                 callbackSpy.reset();
                 return message2;
             });
-            var messages = message1 + '*';
-            exec.processMessages(messages);
-            expect(callbackSpy).toHaveBeenCalledWith('id', false, 3, ['foo'], false);
+            performExecAndReturn(message1 + '*');
             waitsFor(function() { return nativeApi.retrieveJsMessages.wasCalled }, 500);
             runs(function() {
                 expect(callbackSpy).toHaveBeenCalledWith('id', true, 1, [false], true);
@@ -189,14 +231,21 @@ describe('exec.processMessages', function () {
 
             callbackSpy.andCallFake(function() {
                 if (callbackSpy.calls.length == 1) {
-                    exec.processMessages(message3);
+                    performExecAndReturn(message3);
                 }
             });
-            exec.processMessages(message1 + message2);
-            expect(callbackSpy.argsForCall.length).toEqual(3);
-            expect(callbackSpy.argsForCall[0]).toEqual(['id', false, 3, ['call1'], false]);
-            expect(callbackSpy.argsForCall[1]).toEqual(['id', false, 3, ['call2'], false]);
-            expect(callbackSpy.argsForCall[2]).toEqual(['id', false, 3, ['call3'], false]);
+            performExecAndReturn(message1 + message2);
+            // need to wait for ALL the callbacks before we check our expects
+            waitsFor(function(){
+                return callbackSpy.calls.length > 2;
+            },200);
+
+            runs(function() {
+                expect(callbackSpy.argsForCall.length).toEqual(3);
+                expect(callbackSpy.argsForCall[0]).toEqual(['id', false, 3, ['call1'], false]);
+                expect(callbackSpy.argsForCall[1]).toEqual(['id', false, 3, ['call2'], false]);
+                expect(callbackSpy.argsForCall[2]).toEqual(['id', false, 3, ['call3'], false]);
+            });
         });
     });
 });

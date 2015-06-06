@@ -27,10 +27,8 @@ module.exports = {
             exec = require('cordova/exec'),
             modulemapper = require('cordova/modulemapper');
 
-        // Tell the native code that a page change has occurred.
-        exec(null, null, 'PluginManager', 'startup', []);
-        // Tell the JS that the native side is ready.
-        channel.onNativeReady.fire();
+        // Get the shared secret needed to use the bridge.
+        exec.init();
 
         // TODO: Extract this as a proper plugin.
         modulemapper.clobbers('cordova/plugin/android/app', 'navigator.app');
@@ -46,6 +44,17 @@ module.exports = {
         // Add hardware MENU and SEARCH button handlers
         cordova.addDocumentEventHandler('menubutton');
         cordova.addDocumentEventHandler('searchbutton');
+
+        function bindButtonChannel(buttonName) {
+            // generic button bind used for volumeup/volumedown buttons
+            var volumeButtonChannel = cordova.addDocumentEventHandler(buttonName + 'button');
+            volumeButtonChannel.onHasSubscribersChange = function() {
+                exec(null, null, "App", "overrideButton", [buttonName, this.numHandlers == 1]);
+            };
+        }
+        // Inject a listener for the volume buttons on the document.
+        bindButtonChannel('volumeup');
+        bindButtonChannel('volumedown');
 
         // Let native code know we are all done on the JS side.
         // Native code will then un-hide the WebView.

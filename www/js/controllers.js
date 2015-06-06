@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('FormCtrl', function($scope, Species, Injuries, USStates) {
+.controller('FormCtrl', function($scope, Species, Injuries, USStates, $cordovaGeolocation) {
 	$scope.species = Species;
 	$scope.injuries = Injuries;
 	$scope.states = USStates;
@@ -32,18 +32,19 @@ angular.module('starter.controllers', [])
 
 	$scope.submitForm = function() {};
 
-	
+	var posOptions = {timeout: 10000, enableHighAccuracy: false};
+	$cordovaGeolocation
+	  .getCurrentPosition(posOptions)
+	  .then(function (position) {
+	    $scope.form.latitude  = position.coords.latitude
+	    $scope.form.longitude = position.coords.longitude
+	    console.log('lat', $scope.form.latitude)
+	    console.log('long', $scope.form.longitude)
+	  }, function(err) {
+	    console.log('error', err)
+	  });
+
+
+
 })
 
-// A simple controller that fetches a list of data from a service
-.controller('PetIndexCtrl', function($scope, PetService) {
-  // "Pets" is a service returning mock data (services.js)
-  $scope.pets = PetService.all();
-})
-
-
-// A simple controller that shows a tapped item's data
-.controller('PetDetailCtrl', function($scope, $stateParams, PetService) {
-  // "Pets" is a service returning mock data (services.js)
-  $scope.pet = PetService.get($stateParams.petId);
-});

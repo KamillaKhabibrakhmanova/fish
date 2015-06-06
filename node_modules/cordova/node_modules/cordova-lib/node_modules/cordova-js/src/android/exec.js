@@ -37,13 +37,10 @@ var cordova = require('cordova'),
     nativeApiProvider = require('cordova/android/nativeapiprovider'),
     utils = require('cordova/utils'),
     base64 = require('cordova/base64'),
+    channel = require('cordova/channel'),
     jsToNativeModes = {
         PROMPT: 0,
-        JS_OBJECT: 1,
-        // This mode is currently for benchmarking purposes only. It must be enabled
-        // on the native side through the ENABLE_LOCATION_CHANGE_EXEC_MODE
-        // constant within CordovaWebViewClient.java before it will work.
-        LOCATION_CHANGE: 2
+        JS_OBJECT: 1
     },
     nativeToJsModes = {
         // Polls for messages using the JS->Native bridge.
@@ -63,9 +60,21 @@ var cordova = require('cordova'),
     jsToNativeBridgeMode,  // Set lazily.
     nativeToJsBridgeMode = nativeToJsModes.ONLINE_EVENT,
     pollEnabled = false,
-    messagesFromNative = [];
+    bridgeSecret = -1;
+
+var messagesFromNative = [];
+var isProcessing = false;
+var resolvedPromise = typeof Promise == 'undefined' ? null : Promise.resolve();
+var nextTick = resolvedPromise ? function(fn) { resolvedPromise.then(fn); } : function(fn) { setTimeout(fn); };
 
 function androidExec(success, fail, service, action, args) {
+    if (bridgeSecret < 0) {
+        // If we ever catch this firing, we'll need to queue up exec()s
+        // and fire them once we get a secret. For now, I don't think
+        // it's possible for exec() to be called since plugins are parsed but
+        // not run until until after onNativeReady.
+        throw new Error('exec() called without bridgeSecret');
+    }
     // Set default bridge modes if they have not already been set.
     // By default, we use the failsafe, since addJavascriptInterface breaks too often
     if (jsToNativeBridgeMode === undefined) {
@@ -86,30 +95,41 @@ function androidExec(success, fail, service, action, args) {
         cordova.callbacks[callbackId] = {success:success, fail:fail};
     }
 
-    if (jsToNativeBridgeMode == jsToNativeModes.LOCATION_CHANGE) {
-        window.location = 'http://cdv_exec/' + service + '#' + action + '#' + callbackId + '#' + argsJson;
-    } else {
-        var messages = nativeApiProvider.get().exec(service, action, callbackId, argsJson);
-        // If argsJson was received by Java as null, try again with the PROMPT bridge mode.
-        // This happens in rare circumstances, such as when certain Unicode characters are passed over the bridge on a Galaxy S2.  See CB-2666.
-        if (jsToNativeBridgeMode == jsToNativeModes.JS_OBJECT && messages === "@Null arguments.") {
-            androidExec.setJsToNativeBridgeMode(jsToNativeModes.PROMPT);
-            androidExec(success, fail, service, action, args);
-            androidExec.setJsToNativeBridgeMode(jsToNativeModes.JS_OBJECT);
-            return;
-        } else {
-            androidExec.processMessages(messages, true);
-        }
+    var msgs = nativeApiProvider.get().exec(bridgeSecret, service, action, callbackId, argsJson);
+    // If argsJson was received by Java as null, try again with the PROMPT bridge mode.
+    // This happens in rare circumstances, such as when certain Unicode characters are passed over the bridge on a Galaxy S2.  See CB-2666.
+    if (jsToNativeBridgeMode == jsToNativeModes.JS_OBJECT && msgs === "@Null arguments.") {
+        androidExec.setJsToNativeBridgeMode(jsToNativeModes.PROMPT);
+        androidExec(success, fail, service, action, args);
+        androidExec.setJsToNativeBridgeMode(jsToNativeModes.JS_OBJECT);
+    } else if (msgs) {
+        messagesFromNative.push(msgs);
+        // Always process async to avoid exceptions messing up stack.
+        nextTick(processMessages);
     }
 }
+
+androidExec.init = function() {
+    bridgeSecret = +prompt('', 'gap_init:' + nativeToJsBridgeMode);
+    channel.onNativeReady.fire();
+};
 
 function pollOnceFromOnlineEvent() {
     pollOnce(true);
 }
 
 function pollOnce(opt_fromOnlineEvent) {
-    var msg = nativeApiProvider.get().retrieveJsMessages(!!opt_fromOnlineEvent);
-    androidExec.processMessages(msg);
+    if (bridgeSecret < 0) {
+        // This can happen when the NativeToJsMessageQueue resets the online state on page transitions.
+        // We know there's nothing to retrieve, so no need to poll.
+        return;
+    }
+    var msgs = nativeApiProvider.get().retrieveJsMessages(bridgeSecret, !!opt_fromOnlineEvent);
+    if (msgs) {
+        messagesFromNative.push(msgs);
+        // Process sync since we know we're already top-of-stack.
+        processMessages();
+    }
 }
 
 function pollingTimerFunc() {
@@ -158,7 +178,10 @@ androidExec.setNativeToJsBridgeMode = function(mode) {
 
     nativeToJsBridgeMode = mode;
     // Tell the native side to switch modes.
-    nativeApiProvider.get().setNativeToJsBridgeMode(mode);
+    // Otherwise, it will be set by androidExec.init()
+    if (bridgeSecret >= 0) {
+        nativeApiProvider.get().setNativeToJsBridgeMode(bridgeSecret, mode);
+    }
 
     if (mode == nativeToJsModes.POLLING) {
         pollEnabled = true;
@@ -166,87 +189,84 @@ androidExec.setNativeToJsBridgeMode = function(mode) {
     }
 };
 
-// Processes a single message, as encoded by NativeToJsMessageQueue.java.
-function processMessage(message) {
-    try {
-        var firstChar = message.charAt(0);
-        if (firstChar == 'J') {
-            eval(message.slice(1));
-        } else if (firstChar == 'S' || firstChar == 'F') {
-            var success = firstChar == 'S';
-            var keepCallback = message.charAt(1) == '1';
-            var spaceIdx = message.indexOf(' ', 2);
-            var status = +message.slice(2, spaceIdx);
-            var nextSpaceIdx = message.indexOf(' ', spaceIdx + 1);
-            var callbackId = message.slice(spaceIdx + 1, nextSpaceIdx);
-            var payloadKind = message.charAt(nextSpaceIdx + 1);
-            var payload;
-            if (payloadKind == 's') {
-                payload = message.slice(nextSpaceIdx + 2);
-            } else if (payloadKind == 't') {
-                payload = true;
-            } else if (payloadKind == 'f') {
-                payload = false;
-            } else if (payloadKind == 'N') {
-                payload = null;
-            } else if (payloadKind == 'n') {
-                payload = +message.slice(nextSpaceIdx + 2);
-            } else if (payloadKind == 'A') {
-                var data = message.slice(nextSpaceIdx + 2);
-                var bytes = window.atob(data);
-                var arraybuffer = new Uint8Array(bytes.length);
-                for (var i = 0; i < bytes.length; i++) {
-                    arraybuffer[i] = bytes.charCodeAt(i);
-                }
-                payload = arraybuffer.buffer;
-            } else if (payloadKind == 'S') {
-                payload = window.atob(message.slice(nextSpaceIdx + 2));
-            } else {
-                payload = JSON.parse(message.slice(nextSpaceIdx + 1));
-            }
-            cordova.callbackFromNative(callbackId, success, status, [payload], keepCallback);
-        } else {
-            console.log("processMessage failed: invalid message: " + JSON.stringify(message));
+function buildPayload(payload, message) {
+    var payloadKind = message.charAt(0);
+    if (payloadKind == 's') {
+        payload.push(message.slice(1));
+    } else if (payloadKind == 't') {
+        payload.push(true);
+    } else if (payloadKind == 'f') {
+        payload.push(false);
+    } else if (payloadKind == 'N') {
+        payload.push(null);
+    } else if (payloadKind == 'n') {
+        payload.push(+message.slice(1));
+    } else if (payloadKind == 'A') {
+        var data = message.slice(1);
+        payload.push(base64.toArrayBuffer(data));
+    } else if (payloadKind == 'S') {
+        payload.push(window.atob(message.slice(1)));
+    } else if (payloadKind == 'M') {
+        var multipartMessages = message.slice(1);
+        while (multipartMessages !== "") {
+            var spaceIdx = multipartMessages.indexOf(' ');
+            var msgLen = +multipartMessages.slice(0, spaceIdx);
+            var multipartMessage = multipartMessages.substr(spaceIdx + 1, msgLen);
+            multipartMessages = multipartMessages.slice(spaceIdx + msgLen + 1);
+            buildPayload(payload, multipartMessage);
         }
-    } catch (e) {
-        console.log("processMessage failed: Error: " + e);
-        console.log("processMessage failed: Stack: " + e.stack);
-        console.log("processMessage failed: Message: " + message);
+    } else {
+        payload.push(JSON.parse(message));
     }
 }
 
-var isProcessing = false;
-
-// This is called from the NativeToJsMessageQueue.java.
-androidExec.processMessages = function(messages, opt_useTimeout) {
-    if (messages) {
-        messagesFromNative.push(messages);
+// Processes a single message, as encoded by NativeToJsMessageQueue.java.
+function processMessage(message) {
+    var firstChar = message.charAt(0);
+    if (firstChar == 'J') {
+        // This is deprecated on the .java side. It doesn't work with CSP enabled.
+        eval(message.slice(1));
+    } else if (firstChar == 'S' || firstChar == 'F') {
+        var success = firstChar == 'S';
+        var keepCallback = message.charAt(1) == '1';
+        var spaceIdx = message.indexOf(' ', 2);
+        var status = +message.slice(2, spaceIdx);
+        var nextSpaceIdx = message.indexOf(' ', spaceIdx + 1);
+        var callbackId = message.slice(spaceIdx + 1, nextSpaceIdx);
+        var payloadMessage = message.slice(nextSpaceIdx + 1);
+        var payload = [];
+        buildPayload(payload, payloadMessage);
+        cordova.callbackFromNative(callbackId, success, status, payload, keepCallback);
+    } else {
+        console.log("processMessage failed: invalid message: " + JSON.stringify(message));
     }
+}
+
+function processMessages() {
     // Check for the reentrant case.
     if (isProcessing) {
         return;
     }
-    if (opt_useTimeout) {
-        window.setTimeout(androidExec.processMessages, 0);
+    if (messagesFromNative.length === 0) {
         return;
     }
     isProcessing = true;
     try {
-        // TODO: add setImmediate polyfill and process only one message at a time.
-        while (messagesFromNative.length) {
-            var msg = popMessageFromQueue();
-            // The Java side can send a * message to indicate that it
-            // still has messages waiting to be retrieved.
-            if (msg == '*' && messagesFromNative.length === 0) {
-                setTimeout(pollOnce, 0);
-                return;
-            }
-            processMessage(msg);
+        var msg = popMessageFromQueue();
+        // The Java side can send a * message to indicate that it
+        // still has messages waiting to be retrieved.
+        if (msg == '*' && messagesFromNative.length === 0) {
+            nextTick(pollOnce);
+            return;
         }
+        processMessage(msg);
     } finally {
         isProcessing = false;
+        if (messagesFromNative.length > 0) {
+            nextTick(processMessages);
+        }
     }
-};
+}
 
 function popMessageFromQueue() {
     var messageBatch = messagesFromNative.shift();

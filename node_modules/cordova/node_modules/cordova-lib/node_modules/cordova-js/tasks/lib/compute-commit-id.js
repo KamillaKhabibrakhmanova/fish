@@ -27,34 +27,37 @@ module.exports = function computeCommitId(callback, cachedGitVersion) {
         callback(cachedGitVersion);
         return;
     }
-
-    var versionFileId = fs.readFileSync('VERSION', { encoding: 'utf8' }).trim();
-
-    if (/-dev$/.test(versionFileId) && fs.existsSync('.git')) {
+    
+    var cordovaJSDir = path.join(__dirname, '../../');
+    
+    //make sure .git directory exists in cordova.js repo
+    if (fs.existsSync(path.join(__dirname, '../../.git'))) {
         var gitPath = 'git';
-        var args = 'rev-list HEAD --max-count=1 --abbrev-commit';
-        childProcess.exec(gitPath + ' ' + args, function(err, stdout, stderr) {
+        var args = 'rev-list HEAD --max-count=1';
+        childProcess.exec(gitPath + ' ' + args, {cwd:cordovaJSDir}, function(err, stdout, stderr) {
             var isWindows = process.platform.slice(0, 3) == 'win';
             if (err && isWindows) {
                 gitPath = '"' + path.join(process.env['ProgramFiles'], 'Git', 'bin', 'git.exe') + '"';
                 childProcess.exec(gitPath + ' ' + args, function(err, stdout, stderr) {
                     if (err) {
                         console.warn('Error during git describe: ' + err);
-                        done(versionFileId + '-??');
+                        done('???');
                     } else {
-                        done(versionFileId + '-' + stdout);
+                        done(stdout);
                     }
                 });
             } else if (err) {
                 console.warn('Error during git describe: ' + err);
-                done(versionFileId + '-??');
+                done('???');
             } else {
-                done(versionFileId + '-' + stdout);
+                done(stdout);
             }
         });
     } else {
-        done(fs.readFileSync('VERSION', { encoding: 'utf8' }));
-    }
+        //console.log('no git');
+        //Can't compute commit ID
+        done('???');
+    } 
 
     function done(stdout) {
         var version = stdout.trim();
