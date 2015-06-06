@@ -10,3 +10,11 @@
 .form {
 	margin: 0 10px;
 }
+
+input {
+	background: #eee;
+}
+
+button {
+	margin-top: 5px;
+}

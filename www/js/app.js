@@ -24,34 +24,34 @@ angular.module('starter', ['ionic', 'ui.router', 'starter.services', 'starter.co
     })
 
     // the pet tab has its own child nav-view and history
-    .state('tab.pet-index', {
-      url: '/pets',
-      views: {
-        'pets-tab': {
-          templateUrl: 'templates/pet-index.html',
-          controller: 'PetIndexCtrl'
-        }
-      }
-    })
+    // .state('tab.pet-index', {
+    //   url: '/pets',
+    //   views: {
+    //     'pets-tab': {
+    //       templateUrl: 'templates/pet-index.html',
+    //       controller: 'PetIndexCtrl'
+    //     }
+    //   }
+    // })
 
-    .state('tab.pet-detail', {
-      url: '/pet/:petId',
-      views: {
-        'pets-tab': {
-          templateUrl: 'templates/pet-detail.html',
-          controller: 'PetDetailCtrl'
-        }
-      }
-    })
+    // .state('tab.pet-detail', {
+    //   url: '/pet/:petId',
+    //   views: {
+    //     'pets-tab': {
+    //       templateUrl: 'templates/pet-detail.html',
+    //       controller: 'PetDetailCtrl'
+    //     }
+    //   }
+    // })
 
-    .state('tab.adopt', {
-      url: '/adopt',
-      views: {
-        'adopt-tab': {
-          templateUrl: 'templates/adopt.html'
-        }
-      }
-    })
+    // .state('tab.adopt', {
+    //   url: '/adopt',
+    //   views: {
+    //     'adopt-tab': {
+    //       templateUrl: 'templates/adopt.html'
+    //     }
+    //   }
+    // })
 
     .state('tab.form', {
       url: '/form',
@@ -82,7 +82,7 @@ angular.module('starter', ['ionic', 'ui.router', 'starter.services', 'starter.co
     });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/pets');
+  $urlRouterProvider.otherwise('/tab/form');
 
 });
 

@@ -29,6 +29,10 @@ angular.module('starter.controllers', [])
 		$state.go('tab.success');
 	};
 
+	$scope.goBack = function(before, current) {
+		$scope.progress[before] = true;
+		$scope.progress[current] = false;
+	}
 	
 })
 
