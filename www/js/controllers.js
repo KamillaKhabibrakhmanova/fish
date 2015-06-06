@@ -1,6 +1,7 @@
 angular.module('starter.controllers', [])
 
-.controller('FormCtrl', function($scope, Species, Injuries, USStates, $cordovaGeolocation) {
+.controller('FormCtrl', function($scope, Species, Injuries, USStates, $state, $cordovaGeolocation) {
+
 	$scope.species = Species;
 	$scope.injuries = Injuries;
 	$scope.states = USStates;
@@ -25,6 +26,10 @@ angular.module('starter.controllers', [])
 		$scope.progress[next] = true;
 	};
 
+	$scope.submitForm = function() {
+		$state.go('tab.success');
+	};
+
 	$scope.goBack = function(before, current) {
 		$scope.progress[before] = true;
 		$scope.progress[current] = false;
@@ -43,6 +48,7 @@ angular.module('starter.controllers', [])
 	  }, function(err) {
 	    console.log('error', err)
 	  });
+
 
 
 

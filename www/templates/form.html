@@ -1,8 +1,13 @@
 <ion-view title="Reporting Form" + \n>
   <ion-content has-tabs="true">
   <div class="form">
+<<<<<<< HEAD
+    <form name="newForm" novalidate>
+    <h3>Marine Mammal Authorization Program Mortality/Injury Reporting Form</h3>
+=======
     <form ng-submit="submitForm()" name="newForm" novalidate>
     <h3>Marine Mammal Authorization Program Mortality/Injury</h3>
+>>>>>>> 17e0d89d97bde3bb4e17d8a8a2e86b07adfaa103
     <ol>
       <span ng-show='progress.partOne'>
         <li>
@@ -113,6 +118,7 @@
         <label>Number of Animals Involved</label>
         <input type='number' ng-model='form.involved_count' ui-validate=" '$value.length > 0' " required>
       </li>
+
       <button ng-click="goBack('partFive', 'partSix')">Back</button>
       <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid">Submit</button>
     </span>
