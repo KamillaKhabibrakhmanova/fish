@@ -30,7 +30,7 @@ angular.module('starter.controllers', [])
 	$scope.goBack = function(before, current) {
 		$scope.progress[before] = true;
 		$scope.progress[current] = false;
-	}
+	};
 
 	$scope.submitForm = function() {
 		$state.go('tab.success');
@@ -38,18 +38,12 @@ angular.module('starter.controllers', [])
 
 	var posOptions = {timeout: 10000, enableHighAccuracy: false};
 	$cordovaGeolocation
-	  .getCurrentPosition(posOptions)
-	  .then(function (position) {
-	    $scope.form.latitude  = position.coords.latitude
-	    $scope.form.longitude = position.coords.longitude
-	    console.log('lat', $scope.form.latitude)
-	    console.log('long', $scope.form.longitude)
-	  }, function(err) {
-	    console.log('error', err)
-	  });
-
-
-
-
-})
+    .getCurrentPosition(posOptions)
+    .then(function (position) {
+      $scope.form.latitude  = position.coords.latitude;
+      $scope.form.longitude = position.coords.longitude;
+    }, function(err) {
+      console.log('error', err);
+    });
+});
 
