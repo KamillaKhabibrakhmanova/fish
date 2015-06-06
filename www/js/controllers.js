@@ -1,5 +1,12 @@
 angular.module('starter.controllers', [])
 
+.controller('FormCtrl', function($scope, Species, Injuries, USStates) {
+	$scope.species = Species;
+	$scope.injuries = Injuries;
+	$scope.states = USStates;
+
+	$scope.submitForm = function() {};
+})
 
 // A simple controller that fetches a list of data from a service
 .controller('PetIndexCtrl', function($scope, PetService) {

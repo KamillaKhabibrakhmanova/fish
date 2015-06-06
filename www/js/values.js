@@ -1,6 +1,5 @@
 angular.module('starter.values', [])
-
-.value('Species', function() {
+.value('Species', 
 [ { code: '100', animal: 'Steller (northern) sea lion' },
  { code: '047', animal: 'Atlantic white-sided dolphin' },
  { code: '002', animal: 'North Atlantic right whale 101' },
@@ -29,9 +28,9 @@ angular.module('starter.values', [])
  { code: '232', animal: 'Dwarf sperm whale 203' },
  { code: '210', animal: 'Unidentified baleen whale 204' },
  { code: '220', animal: 'Unidentified toothed whale' } ]
-})
+)
 
-.value('Injuries', function() {
+.value('Injuries',
 [ { code: '01 ', injury: 'Visible blood flow' },
  { code: '08', injury: 'Listlessness or inability to defend' },
  { code: '02', injury: 'Loss of/damage to appendage/jaw' },
@@ -45,12 +44,11 @@ angular.module('starter.values', [])
  { code: '06', injury: 'Laceration (deep cut)' },
  { code: '13', injury: 'Other wound or injury' },
  { code: '07', injury: 'Rupture or puncture of eyeball' },
- { code: '14', injury: 'Killed' } ]
-})
+ { code: '14', injury: 'Killed' } ])
 
-.value('USStates', function() {
-  return [
-    {
+.value('USStates', 
+
+    [{
         "name": "Alabama",
         "abbreviation": "AL"
     },
@@ -286,4 +284,4 @@ angular.module('starter.values', [])
         "name": "Wyoming",
         "abbreviation": "WY"
     }
-]})
+]);

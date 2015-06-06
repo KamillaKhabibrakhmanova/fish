@@ -44,6 +44,53 @@
         <label>State Commerical Vessel No.</label>
         <input type='number' ng-model='form.reg_number' ui-validate=" '$value.length > 3' ">
       </li>
+      <li>
+        <label>Fishery I.D. No</label>
+        <select ng-model='form.code'>
+        <div fish-codes></div>
+        </select>
+      </li>
+      <li> 
+        <label>Fishery gear type and target species</label>
+        <input type='text' ng-model='form.gear' ui-validate=" '$value.length > 3' ">
+      </li>
+      <li>
+        <label>Date of Mortality/Injury</label>
+        <input type='date' ng-model='form.date' required>
+      </li>
+      <li>
+        <label>Approximate Time of Mortality/Injury</label>
+        <input type='time' ng-model='form.time' placeholder='HH:mm' required>
+      </li>
+      <li>
+        <label>Location of Mortality/Injury</label>
+        <input type='number' ng-model='form.latitude' ui-validate=" '$value.length > 3' " placeholder='latitude'>
+         <input type='number' ng-model='form.longitude' ui-validate=" '$value.length > 3' " placeholder='longitude'>
+          <input type='number' ng-model='form.reg_number' ui-validate=" '$value.length > 3' " placeholder='general'>
+      </li>
+      <li>
+        <label>Type of Interaction</label>
+        <label><input type='radio' ng-model='form.interaction' value='incidental'>Incidental</label>
+        <label><input type='radio' ng-model='form.interaction' value='intentional'>Intentional</label>
+      </li>
+      <li>
+        <label>Species Code</label>
+        <select ng-model='form.species_code' required>
+          <option ng-repeat='item in species' value="{{item.code}}">{{item.code}} - {{item.animal}}</option>
+        </select>
+      </li>
+      <li>
+        <label>Type of Mortality/Injury</label>
+          <label ng-repeat='item in injuries' 
+          <input type='checkbox' 
+          value="{{item.code}}"
+          name='selectedInjuries[]'
+          ng-model='form.injuries' required>{{item.code}} - {{item.injry}}</label>
+      </li>
+      <li>
+        <label>Number of Animals Involved</label>
+        <input type='number' ng-model='form.involved_count' ui-validate=" '$value.length > 0' " required>
+      </li>
       <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid">Submit</button>
     </ol>
     </form>
