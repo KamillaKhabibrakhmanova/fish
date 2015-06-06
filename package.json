@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "cordova": "^5.0.0",
     "firebase": "^2.1.1",
+    "ng-cordova": "^0.1.17-alpha",
     "underscore": "^1.7.0"
   },
   "devDependencies": {
