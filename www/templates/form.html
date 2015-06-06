@@ -1,37 +1,44 @@
 <ion-view>
   <ion-content has-tabs="true">
   <div class="form">
-    <form ng-submit="submitForm()" name="newForm">
+    <form ng-submit="submitForm()" name="newForm" novalidate>
     <h3>Marine Mammal Authorization Program Mortality/Injury Reporting Form</h3>
     <ol>
-      <li>
-        <label>Last name of vessel owner/operator or permit holder</label>
-        <input type='text' required ng-model='form.last_name' ui-validate=" '$value.length > 3' ">
-      </li>
-      <li>
-        <label>First name of vessel owner/operator or permit holder</label>
-        <input type='text' required ng-model='form.first_name' ui-validate=" '$value.length > 3' ">
-      </li>
-       <li>
-        <label>Middle initial of vessel owner/operator or permit holder</label>
-        <input type='text' ng-model='form.middle_initial' ui-validate=" '$value.length > 3' ">
-      </li>
-      <li>
-        <label>Mailing Address</label>
-        <input type='text' required ng-model='form.mailing_address' ui-validate=" '$value.length > 10' ">
-      </li>
-      <li>
-        <label>City</label>
-        <input type='text' required ng-model='form.city' ui-validate=" '$value.length > 5' ">
-      </li>
-      <li>
-        <label>State</label>
-        <select ng-model='form.state' required ng-options='state.name as state.name for state in states'></select>
-      </li>
-      <li>
-        <label>Zipcode</label>
-        <input type='text' required ng-model='form.zipcode' ui-validate=" '$value.length > 5' ">
-      </li>
+      <span ng-show='progress.partOne'>
+        <li>
+          <label>Last name of vessel owner/operator or permit holder</label>
+          <input type='text' required ng-model='form.last_name' ui-validate=" '$value.length > 3' ">
+        </li>
+        <li>
+          <label>First name of vessel owner/operator or permit holder</label>
+          <input type='text' required ng-model='form.first_name' ui-validate=" '$value.length > 3' ">
+        </li>
+         <li>
+          <label>Middle initial of vessel owner/operator or permit holder</label>
+          <input type='text' ng-model='form.middle_initial' ui-validate=" '$value.length > 3' ">
+        </li>
+        <button ng-click="gotoNext('partOne','partTwo')">Next</button>
+      </span>
+      <span ng-show='progress.partTwo'>
+        <li>
+          <label>Mailing Address</label>
+          <input type='text' required ng-model='form.mailing_address' ui-validate=" '$value.length > 10' ">
+        </li>
+        <li>
+          <label>City</label>
+          <input type='text' required ng-model='form.city' ui-validate=" '$value.length > 5' ">
+        </li>
+        <li>
+          <label>State</label>
+          <select ng-model='form.state' required ng-options='state.name as state.name for state in states'></select>
+        </li>
+        <li>
+          <label>Zipcode</label>
+          <input type='text' required ng-model='form.zipcode' ui-validate=" '$value.length > 5' ">
+        </li>
+        <button ng-click="gotoNext('partTwo','partThree')">Next</button>
+      </span>
+      <span ng-show='progress.partThree'>
       <li>
         <label>Vessel Name</label>
         <input type='text' required ng-model='form.vessel_name' ui-validate=" '$value.length > 3' ">
@@ -44,6 +51,9 @@
         <label>State Commerical Vessel No.</label>
         <input type='number' ng-model='form.reg_number' ui-validate=" '$value.length > 3' ">
       </li>
+      <button ng-click="gotoNext('partThree','partFour')">Next</button>
+    </span>
+    <span ng-show='progress.partFour'>
       <li>
         <label>Fishery I.D. No</label>
         <select ng-model='form.code'>
@@ -54,6 +64,9 @@
         <label>Fishery gear type and target species</label>
         <input type='text' ng-model='form.gear' ui-validate=" '$value.length > 3' ">
       </li>
+      <button ng-click="gotoNext('partFour','partFive')">Next</button>
+    </span>
+    <span ng-show='progress.partFive'>
       <li>
         <label>Date of Mortality/Injury</label>
         <input type='date' ng-model='form.date' required>
@@ -62,6 +75,7 @@
         <label>Approximate Time of Mortality/Injury</label>
         <input type='time' ng-model='form.time' placeholder='HH:mm' required>
       </li>
+
       <li>
         <label>Location of Mortality/Injury</label>
         <input type='number' ng-model='form.latitude' ui-validate=" '$value.length > 3' " placeholder='latitude'>
@@ -73,6 +87,9 @@
         <label><input type='radio' ng-model='form.interaction' value='incidental'>Incidental</label>
         <label><input type='radio' ng-model='form.interaction' value='intentional'>Intentional</label>
       </li>
+      <button ng-click="gotoNext('partFive','partSix')">Next</button>
+    </span>
+    <span ng-show='progress.partSix'>
       <li>
         <label>Species Code</label>
         <select ng-model='form.species_code' required>
@@ -87,13 +104,13 @@
           check-list='form.checked_injuries'
           required>{{item.code}} - {{item.injury}}
         <br></span>
-
       </li>
       <li>
         <label>Number of Animals Involved</label>
         <input type='number' ng-model='form.involved_count' ui-validate=" '$value.length > 0' " required>
       </li>
       <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid">Submit</button>
+    </span>
     </ol>
     </form>
   </div>

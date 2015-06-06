@@ -1,15 +1,29 @@
 angular.module('starter.controllers', [])
 
-.controller('FormCtrl', function($scope, Species, Injuries, USStates, $cordovaGeolocation, GeoLocation) {
+.controller('FormCtrl', function($scope, Species, Injuries, USStates) {
 	$scope.species = Species;
 	$scope.injuries = Injuries;
 	$scope.states = USStates;
 	$scope.form = {};
 	$scope.form.checked_injuries = [];
 
-	$cordova.geoLocation.getCurrentPosition.then(function(position) {
-		console.log(position);
-	})
+	// $cordova.geoLocation.getCurrentPosition.then(function(position) {
+	// 	console.log(position);
+	// });
+
+	$scope.progress = {
+		partOne: true,
+		partTwo: false,
+		partThree: false,
+		partFour: false,
+		partFive: false,
+		partSix: false
+	};
+
+	$scope.gotoNext = function(current, next) {
+		$scope.progress[current] = false;
+		$scope.progress[next] = true;
+	};
 
 	$scope.submitForm = function() {};
 
