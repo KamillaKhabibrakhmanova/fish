@@ -1,13 +1,8 @@
 <ion-view title="Reporting Form" + \n>
   <ion-content has-tabs="true">
   <div class="form">
-<<<<<<< HEAD
     <form name="newForm" novalidate>
-    <h3>Marine Mammal Authorization Program Mortality/Injury Reporting Form</h3>
-=======
-    <form ng-submit="submitForm()" name="newForm" novalidate>
     <h3>Marine Mammal Authorization Program Mortality/Injury</h3>
->>>>>>> 17e0d89d97bde3bb4e17d8a8a2e86b07adfaa103
     <ol>
       <span ng-show='progress.partOne'>
         <li>
@@ -55,7 +50,7 @@
       </li>
       <li>
         <label>State Commerical Vessel No.</label>
-        <input type='number' ng-model='form.reg_number' ui-validate=" '$value.length > 3' ">
+        <input type='number' ng-model='form.com_vessel_number' ui-validate=" '$value.length > 3' ">
       </li>
       <button ng-click="goBack('partTwo', 'partThree')">Back</button>
       <button ng-click="gotoNext('partThree','partFour')">Next</button>
@@ -63,8 +58,8 @@
     <span ng-show='progress.partFour'>
       <li>
         <label>Fishery I.D. No</label>
-        <select ng-model='form.code'>
-        <div fish-codes></div>
+        <select ng-model='form.fishery_code'>
+          <option ng-repeat='fishery in fisheries' value='fishery.code'>{{fishery.code}} - {{fishery.fishery}}</option>
         </select>
       </li>
       <li> 
@@ -88,7 +83,7 @@
         <label>Location of Mortality/Injury</label>
         <input type='number' ng-model='form.latitude' ui-validate=" '$value.length > 3' " placeholder='latitude'>
          <input type='number' ng-model='form.longitude' ui-validate=" '$value.length > 3' " placeholder='longitude'>
-          <input type='number' ng-model='form.reg_number' ui-validate=" '$value.length > 3' " placeholder='general'>
+          <input type='number' ng-model='form.location' ui-validate=" '$value.length > 3' " placeholder='general - fill out if no lat/long available'>
       </li>
       <li>
         <label>Type of Interaction</label>
@@ -120,7 +115,7 @@
       </li>
 
       <button ng-click="goBack('partFive', 'partSix')">Back</button>
-      <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid">Submit</button>
+      <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid" ng-click='submitForm()'>Submit</button>
     </span>
     </ol>
     </form>

@@ -1,9 +1,10 @@
 angular.module('starter.controllers', [])
 
-.controller('FormCtrl', function($scope, Species, Injuries, USStates, $state) {
+.controller('FormCtrl', function($scope, Species, Injuries, USStates, Fisheries, $state) {
 	$scope.species = Species;
 	$scope.injuries = Injuries;
 	$scope.states = USStates;
+	$scope.fisheries = Fisheries;
 	$scope.form = {};
 	$scope.form.checked_injuries = [];
 
