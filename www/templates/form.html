@@ -1,7 +1,7 @@
 <ion-view>
   <ion-content has-tabs="true">
   <div class="form">
-    <form ng-submit="submitForm()" name="newForm" novalidate>
+    <form name="newForm" novalidate>
     <h3>Marine Mammal Authorization Program Mortality/Injury Reporting Form</h3>
     <ol>
       <span ng-show='progress.partOne'>
@@ -109,7 +109,7 @@
         <label>Number of Animals Involved</label>
         <input type='number' ng-model='form.involved_count' ui-validate=" '$value.length > 0' " required>
       </li>
-      <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid">Submit</button>
+      <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid" ng-click='submitForm()'>Submit</button>
     </span>
     </ol>
     </form>

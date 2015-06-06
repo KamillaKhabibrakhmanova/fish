@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.services', 'starter.controllers', 'starter.values', 'starter.directives'])
+angular.module('starter', ['ionic', 'ui.router', 'starter.services', 'starter.controllers', 'starter.values', 'starter.directives'])
 
 
 .config(function($stateProvider, $urlRouterProvider) {
@@ -59,6 +59,15 @@ angular.module('starter', ['ionic', 'starter.services', 'starter.controllers', '
         'form-tab': {
           templateUrl: 'templates/form.html',
           controller: 'FormCtrl'
+        }
+      }
+    })
+
+    .state('tab.success', {
+      url: '/success',
+      views: {
+        'form-tab': {
+          templateUrl: 'templates/success.html'
         }
       }
     })
