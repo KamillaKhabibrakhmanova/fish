@@ -1,11 +1,19 @@
 angular.module('starter.controllers', [])
 
-.controller('FormCtrl', function($scope, Species, Injuries, USStates) {
+.controller('FormCtrl', function($scope, Species, Injuries, USStates, $cordovaGeolocation, GeoLocation) {
 	$scope.species = Species;
 	$scope.injuries = Injuries;
 	$scope.states = USStates;
+	$scope.form = {};
+	$scope.form.checked_injuries = [];
+
+	$cordova.geoLocation.getCurrentPosition.then(function(position) {
+		console.log(position);
+	})
 
 	$scope.submitForm = function() {};
+
+	
 })
 
 // A simple controller that fetches a list of data from a service

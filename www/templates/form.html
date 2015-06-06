@@ -1,4 +1,4 @@
-<ion-view title="Fill OUt Form">
+<ion-view>
   <ion-content has-tabs="true">
   <div class="form">
     <form ng-submit="submitForm()" name="newForm">
@@ -81,11 +81,13 @@
       </li>
       <li>
         <label>Type of Mortality/Injury</label>
-          <label ng-repeat='item in injuries' 
+          <span ng-repeat='item in injuries'> 
           <input type='checkbox' 
           value="{{item.code}}"
-          name='selectedInjuries[]'
-          ng-model='form.injuries' required>{{item.code}} - {{item.injry}}</label>
+          check-list='form.checked_injuries'
+          required>{{item.code}} - {{item.injury}}
+        <br></span>
+
       </li>
       <li>
         <label>Number of Animals Involved</label>
