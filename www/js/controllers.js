@@ -32,7 +32,9 @@ angular.module('starter.controllers', [])
 		$scope.progress[current] = false;
 	}
 
-	$scope.submitForm = function() {};
+	$scope.submitForm = function() {
+		$state.go('tab.success');
+	};
 
 	var posOptions = {timeout: 10000, enableHighAccuracy: false};
 	$cordovaGeolocation
