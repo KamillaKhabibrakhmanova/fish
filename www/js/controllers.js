@@ -25,6 +25,11 @@ angular.module('starter.controllers', [])
 		$scope.progress[next] = true;
 	};
 
+	$scope.goBack = function(before, current) {
+		$scope.progress[before] = true;
+		$scope.progress[current] = false;
+	}
+
 	$scope.submitForm = function() {};
 
 	

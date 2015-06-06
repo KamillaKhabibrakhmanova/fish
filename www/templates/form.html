@@ -1,8 +1,8 @@
-<ion-view>
+<ion-view title="Reporting Form" + \n>
   <ion-content has-tabs="true">
   <div class="form">
     <form ng-submit="submitForm()" name="newForm" novalidate>
-    <h3>Marine Mammal Authorization Program Mortality/Injury Reporting Form</h3>
+    <h3>Marine Mammal Authorization Program Mortality/Injury</h3>
     <ol>
       <span ng-show='progress.partOne'>
         <li>
@@ -36,6 +36,7 @@
           <label>Zipcode</label>
           <input type='text' required ng-model='form.zipcode' ui-validate=" '$value.length > 5' ">
         </li>
+        <button ng-click="goBack('partOne', 'partTwo')">Back</button>
         <button ng-click="gotoNext('partTwo','partThree')">Next</button>
       </span>
       <span ng-show='progress.partThree'>
@@ -51,6 +52,7 @@
         <label>State Commerical Vessel No.</label>
         <input type='number' ng-model='form.reg_number' ui-validate=" '$value.length > 3' ">
       </li>
+      <button ng-click="goBack('partTwo', 'partThree')">Back</button>
       <button ng-click="gotoNext('partThree','partFour')">Next</button>
     </span>
     <span ng-show='progress.partFour'>
@@ -64,6 +66,7 @@
         <label>Fishery gear type and target species</label>
         <input type='text' ng-model='form.gear' ui-validate=" '$value.length > 3' ">
       </li>
+      <button ng-click="goBack('partThree', 'partFour')">Back</button>
       <button ng-click="gotoNext('partFour','partFive')">Next</button>
     </span>
     <span ng-show='progress.partFive'>
@@ -87,6 +90,7 @@
         <label><input type='radio' ng-model='form.interaction' value='incidental'>Incidental</label>
         <label><input type='radio' ng-model='form.interaction' value='intentional'>Intentional</label>
       </li>
+      <button ng-click="goBack('partFour', 'partFive')">Back</button>
       <button ng-click="gotoNext('partFive','partSix')">Next</button>
     </span>
     <span ng-show='progress.partSix'>
@@ -109,6 +113,7 @@
         <label>Number of Animals Involved</label>
         <input type='number' ng-model='form.involved_count' ui-validate=" '$value.length > 0' " required>
       </li>
+      <button ng-click="goBack('partFive', 'partSix')">Back</button>
       <button class="btn btn-primary" type="submit" ng-disabled="newForm.$invalid">Submit</button>
     </span>
     </ol>
