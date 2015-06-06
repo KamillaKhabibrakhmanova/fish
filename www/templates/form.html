@@ -30,6 +30,7 @@
         </li>
         <li>
           <label>State</label>
+          <br>
           <select ng-model='form.state' required ng-options='state.name as state.name for state in states'></select>
         </li>
         <li>
@@ -58,6 +59,7 @@
     <span ng-show='progress.partFour'>
       <li>
         <label>Fishery I.D. No</label>
+        <br>
         <select ng-model='form.fishery_code'>
           <option ng-repeat='fishery in fisheries' value='fishery.code'>{{fishery.code}} - {{fishery.fishery}}</option>
         </select>
@@ -87,7 +89,9 @@
       </li>
       <li>
         <label>Type of Interaction</label>
+        <br>
         <label><input type='radio' ng-model='form.interaction' value='incidental'>Incidental</label>
+        <br>
         <label><input type='radio' ng-model='form.interaction' value='intentional'>Intentional</label>
       </li>
       <button ng-click="goBack('partFour', 'partFive')">Back</button>
@@ -96,12 +100,14 @@
     <span ng-show='progress.partSix'>
       <li>
         <label>Species Code</label>
+        <br>
         <select ng-model='form.species_code' required>
           <option ng-repeat='item in species' value="{{item.code}}">{{item.code}} - {{item.animal}}</option>
         </select>
       </li>
       <li>
         <label>Type of Mortality/Injury</label>
+        <br>
           <span ng-repeat='item in injuries'> 
           <input type='checkbox' 
           value="{{item.code}}"
